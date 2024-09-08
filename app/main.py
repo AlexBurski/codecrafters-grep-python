@@ -11,9 +11,18 @@ def match_pattern(input_line, pattern):
         return any(char.isdigit() for char in input_line)
     elif pattern == r'\w':
         return any(char.isalnum() for char in input_line)
+    elif "[" in pattern:
+        return positive_char_from_group(pattern, input_line)
     else:
         raise RuntimeError(f"Unhandled pattern: {pattern}")
 
+def positive_char_from_group(group, input_line):
+    for char in group:
+        if char not in ("[", "]"):
+            if char in input_line:
+                return True
+
+    return False
 
 def main():
     pattern = sys.argv[2]

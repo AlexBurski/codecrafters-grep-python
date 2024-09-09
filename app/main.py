@@ -11,18 +11,22 @@ def match_pattern(input_line, pattern):
         return any(char.isdigit() for char in input_line)
     elif pattern == r'\w':
         return any(char.isalnum() for char in input_line)
-    elif "[" in pattern:
+    elif "[" in pattern and "]" in pattern:
         return positive_char_from_group(pattern, input_line)
     else:
         raise RuntimeError(f"Unhandled pattern: {pattern}")
 
 def positive_char_from_group(group, input_line):
-    for char in group:
-        if char not in ("[", "]"):
-            if char in input_line:
-                return True
+    start_index = group.find("[")
+    end_index = group.find("]")
 
-    return False
+    if start_index == -1 or start_index > end_index:
+        raise ValueError("Pattern must contain characters between '[' and ']'")
+
+    character_set = group[start_index + 1 : end_index]
+    input_line_set = set(input_line)
+
+    return bool(character_set & input_line_set)
 
 def main():
     pattern = sys.argv[2]

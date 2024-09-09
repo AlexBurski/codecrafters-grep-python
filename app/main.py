@@ -20,11 +20,13 @@ def positive_char_from_group(group, input_line):
     start_index = group.find("[")
     end_index = group.find("]")
 
-    if start_index == -1 or start_index > end_index:
+    if start_index == -1 or end_index == -1 or start_index > end_index:
         raise ValueError("Pattern must contain characters between '[' and ']'")
-
-    character_set = group[start_index + 1 : end_index]
+    character_set = set(group[start_index + 1: end_index])
     input_line_set = set(input_line)
+
+    if start_index + 1 == group.find("^"):
+        return not bool(character_set & input_line_set)
 
     return bool(character_set & input_line_set)
 

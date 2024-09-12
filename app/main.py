@@ -5,17 +5,10 @@ import sys
 
 
 def match_pattern(input_line, pattern):
-    if len(pattern) == 1:
-        return pattern in input_line
-    elif pattern == r'\d':
-        return any(char.isdigit() for char in input_line)
-    elif pattern == r'\w':
-        return any(char.isalnum() for char in input_line)
-    elif "[" in pattern and "]" in pattern:
-        return positive_char_from_group(pattern, input_line)
-    else:
-        raise RuntimeError(f"Unhandled pattern: {pattern}")
-
+    for i in range(len(input_line)):
+        if recursive_search(pattern, input_line[i:], start_index = i):
+            return True
+    return False
 def positive_char_from_group(group, input_line):
     start_index = group.find("[")
     end_index = group.find("]")
@@ -30,6 +23,48 @@ def positive_char_from_group(group, input_line):
 
     return bool(character_set & input_line_set)
 
+def recursive_search(pattern, input_line, start_index):
+    pattern_index = 0
+    input_index = start_index
+
+    while pattern_index < len(pattern) and input_index < len(input_line):
+        if pattern[pattern_index:pattern_index + 2] == r"\d":
+            if not input_line[input_index].isdigit():
+                return False
+            pattern_index += 2
+            input_index += 1
+        elif pattern[pattern_index:pattern_index + 2] == r"\w":
+            if not input_line[input_index].isalnum():
+                return False
+            pattern_index += 2
+            input_index += 1
+
+        elif pattern[pattern_index] == '[':
+            closing_bracket_index = pattern.find(']', pattern_index)
+            if closing_bracket_index == -1:
+                raise ValueError("Unmatched '[' in pattern")
+
+            char_set = pattern[pattern_index + 1:closing_bracket_index]
+            is_negated = char_set.startswith('^')
+
+            if is_negated:
+                char_set = char_set[1:]
+
+            if (is_negated and input_line[input_index] in char_set) or (
+                    not is_negated and input_line[input_index] not in char_set):
+                return False
+
+            pattern_index = closing_bracket_index + 1
+            input_index += 1
+
+        elif pattern[pattern_index] == input_line[input_index]:
+            pattern_index += 1
+            input_index += 1
+        else:
+            return False
+
+    return pattern_index == len(pattern)
+
 def main():
     pattern = sys.argv[2]
     input_line = sys.stdin.read()
@@ -38,8 +73,6 @@ def main():
         print("Expected first argument to be '-E'")
         exit(1)
 
-    # You can use print statements as follows for debugging, they'll be visible when running tests.
-    print("Logs from your program will appear here!")
 
     # Uncomment this block to pass the first stage
     if match_pattern(input_line, pattern):

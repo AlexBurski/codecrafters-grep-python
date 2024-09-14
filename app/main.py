@@ -5,19 +5,29 @@ import sys
 
 
 def match_pattern(input_line, pattern):
+    ends_with_anchor = False
+    if pattern.endswith("$"):
+        ends_with_anchor = True
+        pattern = pattern[:-1]
     if pattern.startswith("^"):
-        return string_search(pattern[1:], input_line, start_index=0)
+        return string_search(
+            pattern[1:], input_line, start_index=0, flag_endwith=ends_with_anchor
+        )
     for i in range(len(input_line)):
-        if string_search(pattern, input_line[i:], start_index=i):
+        if string_search(
+            pattern, input_line, start_index=i, flag_endwith=ends_with_anchor
+        ):
             return True
     return False
 
 
-def string_search(pattern, input_line, start_index):
+def string_search(pattern, input_line, start_index, flag_endwith=False):
     pattern_index = 0
     input_index = start_index
 
-    while pattern_index < len(pattern) and input_index < len(input_line):
+    while pattern_index < len(pattern):
+        if input_index >= len(input_line):
+            return False
         if pattern[pattern_index : pattern_index + 2] == r"\d":
             if not input_line[input_index].isdigit():
                 return False
@@ -54,7 +64,10 @@ def string_search(pattern, input_line, start_index):
         else:
             return False
 
-    return pattern_index == len(pattern)
+    if flag_endwith:
+        return input_index == len(input_line)
+    else:
+        return True
 
 
 def main():

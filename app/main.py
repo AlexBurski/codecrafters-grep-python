@@ -29,7 +29,7 @@ def match_element(pattern, pattern_index, input_line, input_index):
     Returns:
         (success, pattern_consumed_length, input_consumed_length)
     """
-    if pattern_index >= len(pattern) and input_index >= len(input_line):
+    if pattern_index >= len(pattern) or input_index >= len(input_line):
         return False, 0, 0
 
     if pattern[pattern_index : pattern_index + 2] == r"\d":
@@ -60,7 +60,7 @@ def match_element(pattern, pattern_index, input_line, input_index):
         return True, closing_bracket_index - pattern_index + 1, 1
     else:
         if not pattern[pattern_index] == input_line[input_index]:
-            return False, 0, 0
+            return False, 1, 0
         return True, 1, 1
 
 
@@ -71,9 +71,21 @@ def string_search(pattern, input_line, start_index, flag_endwith=False):
     while pattern_index < len(pattern):
         # Check if we reached the end
         if input_index >= len(input_line):
-            return False
+            while (
+                pattern_index + 1 < len(pattern) and pattern[pattern_index + 1] == "?"
+            ):
+                pattern_index += 2
 
-        if pattern_index + 1 < len(pattern) and pattern[pattern_index + 1] == "+":
+            return pattern_index == len(pattern) and (
+                not flag_endwith or input_index == len(input_line)
+            )
+
+        if pattern_index + 1 < len(pattern):
+            the_element = pattern[pattern_index + 1]
+        else:
+            the_element = None
+
+        if the_element == "+":
             success, element_length, _ = match_element(
                 pattern, pattern_index, input_line, input_index
             )
@@ -96,6 +108,14 @@ def string_search(pattern, input_line, start_index, flag_endwith=False):
 
             pattern_index += element_length + 1
             input_index += input_consumed
+
+        elif the_element == "?":
+            success, element_length, consumed_length = match_element(
+                pattern, pattern_index, input_line, input_index
+            )
+            if success:
+                input_index += consumed_length
+            pattern_index += element_length + 1
 
         else:
             success, element_length, input_consumed = match_element(

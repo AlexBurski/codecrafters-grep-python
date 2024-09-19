@@ -58,6 +58,10 @@ def match_element(pattern, pattern_index, input_line, input_index):
             return False, 0, 0
 
         return True, closing_bracket_index - pattern_index + 1, 1
+
+    elif pattern[pattern_index] == ".":
+        return True, 1, 1
+
     else:
         if not pattern[pattern_index] == input_line[input_index]:
             return False, 1, 0
